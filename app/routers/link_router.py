@@ -4,7 +4,7 @@ from google import genai
 from youtube_transcript_api import YouTubeTranscriptApi
 import os
 
-client = genai.Client(api_key="AIzaSyC_P6dl2ls9inVXVGgZt2LQ5lf9297pe_M")
+client = genai.Client(api_key=os.getenv("api_key"))
 
 def get_transcript(video_id):
     """
