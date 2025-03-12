@@ -1,0 +1,49 @@
+version: '3.8'
+
+services:
+  db:
+    image: mysql:8.0
+    restart: always
+    env_file: ./.env
+    environment:
+      MYSQL_ROOT_PASSWORD: '${DATABASE_ROOT_PASSWORD}'
+      MYSQL_USER: '${DATABASE_USER}'
+      MYSQL_PASSWORD: '${DATABASE_PASSWORD}'
+      MYSQL_DATABASE: '${DATABASE_NAME}'
+    volumes:
+      - ./.docker-volumes/database:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    ports:
+      - ${DATABASE_PORT}:${DATABASE_PORT}
+    networks:
+      app:
+        ipv4_address: 172.28.0.5
+
+  app:
+    build: .
+    working_dir: /app/app
+    command: ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "${PORT}", "--reload"]
+    depends_on:
+      - db
+    volumes:
+      - .:/app
+    ports:
+      - ${PORT}:${PORT}
+    env_file: ./.env
+    environment:
+      - PORT=${PORT}
+    networks:
+      app:
+        ipv4_address: 172.28.0.6
+
+networks:
+  app:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.28.0.0/16
+          gateway: 172.28.0.1
